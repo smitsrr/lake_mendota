@@ -2,6 +2,11 @@ library(lubridate)  # date conversion
 library(sqldf)      # because i know what I want to do in SQL
 library(ggplot2)    # All plotting
 library(dplyr)      # data munging
+library(plotly)     # for tooltips on the graph
+
+colors<- c("#472A7AFF", "#440154FF", "#481769FF", "#65CB5EFF", "#23898EFF", "#3D4E8AFF", "#433D84FF",
+           "#297B8EFF", "#46C06FFF", "#1F978BFF", "#2EB37CFF", "#2E6D8EFF", "#B0DD2FFF", "#21A585FF",
+           "#89D548FF", "#D8E219FF", "#355E8DFF", "#FDE725FF")
 
 #pull in this handy data from a good person
 setwd ('..')
@@ -35,21 +40,27 @@ lake_expanded <- lake_expanded %>%
   mutate(year2= case_when(
     month(date) >= 10 ~ "2015",
     TRUE ~ "2016")) %>%
-  mutate(x_axis_date = as.Date(paste0(year2, "-", format(lake_expanded$date, "%m-%d")), "%Y-%m-%d"))
+  mutate(x_axis_date = as.Date(paste0(year2, "-", format(lake_expanded$date, "%m-%d")), "%Y-%m-%d"), 
+         decade = cut(year, breaks= 18, ordered_result = T))
 #to make the axis wrap, assign Oct 1- Dec 31 as 2015, and the rest to 2016
 
-ggplot(lake_expanded, aes(x=x_axis_date, fill = as.factor(year))) +
+p<-ggplot(lake_expanded, aes(x=x_axis_date, fill = decade, 
+                             text = paste0(format(date,"%b-%d"),
+                                          '<br>Years:', substr(decade, 2,5), '-', substr(decade, 7,11)))) +
   geom_bar(stat = "count", position = "stack", width = 1) +
   # scale_fill_continuous(low="blue", high="red")+ 
   scale_x_date(date_labels = "%b") + 
   geom_hline(yintercept=163) +
-  labs(y="", x = "", 
-       title = "Number of days Lake Mendota was open for ice fishing") +
+  labs(y="", x = "Calendar Date", 
+       title = "Number of days Lake Mendota was open for ice fishing",
+       subtitle = "over the last 163 winters, by calendar day") +
   theme_minimal() + 
   theme(plot.title = element_text(size = 20, face = "bold", 
                                   margin = margin(10,0,10,0)), 
         axis.text = element_text(colour = "grey12"), 
         axis.ticks = element_line(colour = "grey12"), 
         plot.background = element_rect(colour = "grey82"), 
-        panel.background = element_rect(fill = "grey82", colour = NA)) 
-
+        panel.background = element_rect(fill = "grey82", colour = NA),
+        legend.title=element_blank(),
+        legend.position = "none")
+p
