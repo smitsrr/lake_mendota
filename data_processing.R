@@ -41,7 +41,9 @@ lake_expanded <- lake_expanded %>%
     month(date) >= 10 ~ "2015",
     TRUE ~ "2016")) %>%
   mutate(x_axis_date = as.Date(paste0(year2, "-", format(lake_expanded$date, "%m-%d")), "%Y-%m-%d"), 
-         decade = cut(year, breaks= 18, ordered_result = T))
+         decade = cut(year, breaks= 18, right = T, ordered_result = T)
+         )
+# lake_expanded$decade<- factor(lake_expanded$decade, levels=rev(levels(lake_expanded$decade)))
 #to make the axis wrap, assign Oct 1- Dec 31 as 2015, and the rest to 2016
 
 p<-ggplot(lake_expanded, aes(x=x_axis_date, fill = decade, 
@@ -52,8 +54,8 @@ p<-ggplot(lake_expanded, aes(x=x_axis_date, fill = decade,
   scale_x_date(date_labels = "%b") + 
   geom_hline(yintercept=163) +
   labs(y="", x = "Calendar Date", 
-       title = "Number of days Lake Mendota was open for ice fishing",
-       subtitle = "over the last 163 winters, by calendar day") +
+       title = "Number of days Lake Mendota was closed",
+       subtitle = "over the last 163 winters, by calendar day and decade") +
   theme_minimal() + 
   theme(plot.title = element_text(size = 20, face = "bold", 
                                   margin = margin(10,0,10,0)), 
@@ -62,5 +64,6 @@ p<-ggplot(lake_expanded, aes(x=x_axis_date, fill = decade,
         plot.background = element_rect(colour = "grey82"), 
         panel.background = element_rect(fill = "grey82", colour = NA),
         legend.title=element_blank(),
-        legend.position = "none")
+        legend.position = "none"
+        )
 p
